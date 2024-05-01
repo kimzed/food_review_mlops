@@ -1,6 +1,7 @@
 """
 Preprocessing functions.
 """
+
 import re
 import unicodedata
 
@@ -17,45 +18,54 @@ from typing import List, Dict, Pattern
 # we need this to run in the cloud
 spacy.cli.download("en_core_web_sm")
 
-nltk.download('punkt')
-nltk.download('stopwords')
+nltk.download("punkt")
+nltk.download("stopwords")
 
-nlp = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
+nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
-stop_words = stopwords.words('english')
-stop_words.remove('not')
-stop_words.remove('no')
+stop_words = stopwords.words("english")
+stop_words.remove("not")
+stop_words.remove("no")
 
-extra_stop_words = ['I']
+extra_stop_words = ["I"]
 stop_words.extend(extra_stop_words)
 
 STOP_WORDS = set(stop_words)
 
 REGEX_PATTERNS: Dict[str, Pattern] = {
-    "urls_mentions_hashtags": re.compile(r'https?://[A-Za-z0-9./]+|@[A-Za-z0-9_]+|#'),  # URLs, mentions, and hashtags
-    "numeric_values": re.compile(r'\d+'),  # Digits
-    "consecutive_char_repetition": re.compile(r'((\w)\2{2,})'),  # Consecutive character repetitions
-    "miscellaneous_text_patterns": re.compile(r"&quot;|&amp|[^a-zA-Z0-9\s]|[´\']s "),  # Miscellaneous text patterns
-    "punctuation_special_chars": re.compile(r"[^\w\s]|_"),  # Punctuation, special characters, and underscores
+    "urls_mentions_hashtags": re.compile(
+        r"https?://[A-Za-z0-9./]+|@[A-Za-z0-9_]+|#"
+    ),  # URLs, mentions, and hashtags
+    "numeric_values": re.compile(r"\d+"),  # Digits
+    "consecutive_char_repetition": re.compile(
+        r"((\w)\2{2,})"
+    ),  # Consecutive character repetitions
+    "miscellaneous_text_patterns": re.compile(
+        r"&quot;|&amp|[^a-zA-Z0-9\s]|[´\']s "
+    ),  # Miscellaneous text patterns
+    "punctuation_special_chars": re.compile(
+        r"[^\w\s]|_"
+    ),  # Punctuation, special characters, and underscores
     "whitespace_redundancies": re.compile(r"\s{2,}"),  # Redundant whitespaces
 }
 
 replacements = {
-    "urls_mentions_hashtags": '',  # Removed (substituted with empty string)
-    "numeric_values": ' ',  # Replaced with a space
+    "urls_mentions_hashtags": "",  # Removed (substituted with empty string)
+    "numeric_values": " ",  # Replaced with a space
     "consecutive_char_repetition": r"\2",  # Replaced with the second character in the repetition group
-    "miscellaneous_text_patterns": ' ',  # Replaced with a space
-    "punctuation_special_chars": ' ',  # Replaced with a space
-    "whitespace_redundancies": ' ',  # Replaced with a space
+    "miscellaneous_text_patterns": " ",  # Replaced with a space
+    "punctuation_special_chars": " ",  # Replaced with a space
+    "whitespace_redundancies": " ",  # Replaced with a space
 }
 
 
 def add_polarity_label(df: pd.DataFrame) -> pd.DataFrame:
-    df['Polarity'] = df.Score.apply(lambda x: 0 if x == 1 or x == 2 else 1)
+    df["Polarity"] = df.Score.apply(lambda x: 0 if x == 1 or x == 2 else 1)
     return df
 
+
 def remove_html(text: str) -> str:
-    soup = BeautifulSoup(text, 'html.parser')
+    soup = BeautifulSoup(text, "html.parser")
     cleaned_text = soup.get_text()
 
     return cleaned_text
@@ -65,9 +75,10 @@ def custom_contractions() -> Dict[str, str]:
     contractions_keys = [contr.lower() for contr in contractions_dict.keys()]
     contractions_keys = [re.sub(r"´", r"\'", key) for key in contractions_keys]
 
-    contractions_customed = {contracted: expanded for contracted, expanded in
-                             zip(contractions_keys,
-                                 contractions_dict.values())}
+    contractions_customed = {
+        contracted: expanded
+        for contracted, expanded in zip(contractions_keys, contractions_dict.values())
+    }
 
     return contractions_customed
 
@@ -75,7 +86,8 @@ def custom_contractions() -> Dict[str, str]:
 def map_contractions(text: str) -> str:
     contraction_patterns = [
         re.compile(r"\b\w+[\'|'´]\w+\b", flags=re.IGNORECASE | re.DOTALL),
-        re.compile(r'gonna|wanna', flags=re.IGNORECASE | re.DOTALL)]
+        re.compile(r"gonna|wanna", flags=re.IGNORECASE | re.DOTALL),
+    ]
 
     matched = re.findall(contraction_patterns[0], text)
 
@@ -84,35 +96,43 @@ def map_contractions(text: str) -> str:
         if not matched2:
             return text
         else:
-            expanded_text = re.sub(contraction_patterns[1],
-                                   custom_contractions()[matched[0]], text)
+            expanded_text = re.sub(
+                contraction_patterns[1], custom_contractions()[matched[0]], text
+            )
             return expanded_text
     else:
-        expanded_text = re.sub(contraction_patterns[0],
-                               custom_contractions()[matched[0]], text)
+        expanded_text = re.sub(
+            contraction_patterns[0], custom_contractions()[matched[0]], text
+        )
         matched2 = re.findall(contraction_patterns[1], expanded_text)
 
         if not matched2:
             return expanded_text
         else:
-            expanded_text2 = re.sub(contraction_patterns[1],
-                                    custom_contractions()[matched[0]],
-                                    expanded_text)
+            expanded_text2 = re.sub(
+                contraction_patterns[1],
+                custom_contractions()[matched[0]],
+                expanded_text,
+            )
             return expanded_text2
 
 
 def lemmatize(string: str, nlp_model) -> str:
-    
+
     doc = nlp_model(string)
     lemmatized = " ".join([token.lemma_ for token in doc])
 
     return lemmatized
 
+
 def remove_stop_words(tokens: List, stop_ws) -> str:
-    tokens = ' '.join([t for t in tokens if t not in stop_ws])
+    tokens = " ".join([t for t in tokens if t not in stop_ws])
     return tokens
 
-def apply_regex_patterns(text: str, patterns: Dict[str, Pattern], replacements: Dict[str, str]) -> str:
+
+def apply_regex_patterns(
+    text: str, patterns: Dict[str, Pattern], replacements: Dict[str, str]
+) -> str:
     """
     Applies specified regex patterns to the text.
 
@@ -125,22 +145,28 @@ def apply_regex_patterns(text: str, patterns: Dict[str, Pattern], replacements: 
         str: The processed text after applying all regex patterns.
     """
     for pattern_name, pattern in patterns.items():
-        replacement = replacements.get(pattern_name, '')  # Get replacement string for the current pattern
+        replacement = replacements.get(
+            pattern_name, ""
+        )  # Get replacement string for the current pattern
         text = pattern.sub(replacement, text)
     return text
 
+
 def clean_text(text: str) -> str:
-    '''
+    """
     Finds patterns in the text and replaces them with sth
     returns a list of words
-    '''
+    """
 
     # Remove HTML
     processed_text = remove_html(str(text))
 
     # Remove accents
-    processed_text = unicodedata.normalize('NFKD', processed_text).encode(
-        'ascii', 'ignore').decode('utf-8', 'ignore')
+    processed_text = (
+        unicodedata.normalize("NFKD", processed_text)
+        .encode("ascii", "ignore")
+        .decode("utf-8", "ignore")
+    )
 
     # Convert to lower case
     processed_text = processed_text.lower()

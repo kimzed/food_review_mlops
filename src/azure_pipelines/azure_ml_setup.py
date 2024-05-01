@@ -4,11 +4,13 @@ from azure.identity import DefaultAzureCredential
 from azureml.core import Workspace
 from settings import CONFIG_AZURE_ML, AzureMlConfig, AZURE_ML_CONFIG_FILE, COMPUTE_NAME
 
+
 def get_workspace() -> Workspace:
     """Get Azure ML workspace from config."""
     return Workspace.from_config(path=AZURE_ML_CONFIG_FILE)
 
-def get_ml_client(config_info:AzureMlConfig) -> MLClient:
+
+def get_ml_client(config_info: AzureMlConfig) -> MLClient:
     """Instantiate MLClient using Azure credentials and workspace details."""
     credential = DefaultAzureCredential()
     return MLClient(
@@ -17,6 +19,7 @@ def get_ml_client(config_info:AzureMlConfig) -> MLClient:
         resource_group_name=config_info.resource_group,
         workspace_name=config_info.workspace_name,
     )
+
 
 def get_compute_cluster(ml_client: MLClient, cluster_name: str) -> AmlCompute:
     """Ensure a compute cluster exists or create a new one."""
@@ -38,9 +41,10 @@ def get_compute_cluster(ml_client: MLClient, cluster_name: str) -> AmlCompute:
         print(f"Created cluster: {cluster_name} with size {cluster.size}")
     return cluster
 
+
 try:
     ML_CLIENT = get_ml_client(CONFIG_AZURE_ML)
-    #ML_WORKSPACE = get_workspace()
+    ML_WORKSPACE = get_workspace()
 except:
     print("unable to connect to azure")
 

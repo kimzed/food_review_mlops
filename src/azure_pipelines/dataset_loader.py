@@ -5,25 +5,22 @@ from settings import REVIEW_FILE_PATH, NAME_DATA_ASSET_RAW
 from src.azure_pipelines.azure_ml_setup import ML_CLIENT
 import pandas as pd  # You need to import pandas to handle CSV files
 
+
 def main():
     dataset_version = time.strftime("%Y.%m.%d.%H%M%S", time.gmtime())
 
     # Step 1: Load the original CSV file using pandas
     df = pd.read_csv(REVIEW_FILE_PATH)
-    
-    # Step 2: Slice the DataFrame to keep only the first 100 rows
+
+    # TODO remove when the pipeline is finished
     df_subset = df.head(100)
-    
-    # Step 3: Save the subset to a new file
-    new_file_path = str(REVIEW_FILE_PATH)+"test_subset.csv"  # Define the path for the new file
-    df_subset.to_csv(new_file_path, index=False)  # Save the file without the index
-    
-    # Now use new_file_path for creating the Data object
+    df_subset.to_csv(REVIEW_FILE_PATH, index=False)
+
     my_data = Data(
-        name=str(NAME_DATA_ASSET_RAW)+"-test-subset",
+        name=NAME_DATA_ASSET_RAW,
         version=dataset_version,
         description="Unprocessed dataset of amazon reviews (first 100 lines)",
-        path=new_file_path,  # Use the new file path
+        path=REVIEW_FILE_PATH,  # Use the new file path
         type=AssetTypes.URI_FILE,
     )
 
