@@ -36,7 +36,7 @@ outputs = {
 
 # it does not download the data, just keep a reference
 # i cant manage to get the latest version automatically so i hardcoded it
-input_dataset = ML_CLIENT.data._get_latest_version
+input_dataset = ML_CLIENT.data._get_latest_version(name=NAME_DATA_ASSET_RAW)
 inputs = {"input_data": Input(type=data_type, path=input_dataset.path, mode=input_mode)}
 
 job = command(
