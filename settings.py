@@ -14,6 +14,7 @@ CONFIG_AZURE_ML = AzureMlConfig.load_config(config_azure_ml_path=AZURE_ML_CONFIG
 
 # we use a subset for now to speed up the calculation
 NAME_DATA_ASSET_RAW = "amazon-reviews-raw-test-subset"
+NAME_DATA_ASSET_FEATURE = "review_data_processed"
 
 AZURE_ENV_FILE = WORK_DIR / "environment.yml"
 
