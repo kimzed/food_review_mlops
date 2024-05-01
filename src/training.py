@@ -31,8 +31,8 @@ def xgb_classifier(vect: CountVectorizer, df: pd.DataFrame) -> np.ndarray:
     mlflow.log_metric("accuracy", metrics.pop("accuracy"))
     for class_or_avg, metrics_dict in metrics.items():
         for metric, value in metrics_dict.items():
-            mlflow.log_metric(class_or_avg + '_' + metric,value)
-    
+            mlflow.log_metric(class_or_avg + "_" + metric, value)
+
     mlflow.end_run()
 
 
@@ -82,7 +82,7 @@ def main():
     mlflow.log_metric("accuracy", metrics.pop("accuracy"))
     for class_or_avg, metrics_dict in metrics.items():
         for metric, value in metrics_dict.items():
-            mlflow.log_metric(class_or_avg + '_' + metric,value)
+            mlflow.log_metric(class_or_avg + "_" + metric, value)
 
     print("Registering the model via MLFlow")
     mlflow.xgboost.log_model(
