@@ -52,7 +52,7 @@ def get_compute_cluster(ml_client: MLClient, cluster_name: str) -> AmlCompute:
             size="STANDARD_DS11_V2",
             min_instances=1,
             max_instances=1,
-            idle_time_before_scale_down=120,
+            idle_time_before_scale_down=10,
             tier="Dedicated",
         )
         cluster = ml_client.compute.begin_create_or_update(cluster).result()

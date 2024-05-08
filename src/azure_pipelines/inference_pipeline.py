@@ -23,6 +23,7 @@ def main():
         name="blue",
         endpoint_name=online_endpoint_name,
         model=model,
+        scoring_script_path="",
         instance_type="Standard_D2as_v4",
         instance_count=1,
     )
