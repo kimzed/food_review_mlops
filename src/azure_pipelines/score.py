@@ -11,13 +11,23 @@ def init():
     You can write the logic here to perform init operations like caching the model in memory
     """
     global model
+    global pipeline
     # AZUREML_MODEL_DIR is an environment variable created during deployment.
     # It is the path to the model folder (./azureml-models/$MODEL_NAME/$VERSION)
+    model_dir = os.getenv("AZUREML_MODEL_DIR")
+
     model_path = os.path.join(
-        os.getenv("AZUREML_MODEL_DIR"), MODEL_NAME
+        model_dir, MODEL_NAME
+    )
+    pipeline_path = os.path.join(
+        model_dir, 'text_pipeline.pkl'
     )
     # deserialize the model file back into a sklearn model
     model = joblib.load(model_path)
+
+    # load text pipeline
+    pipeline = joblib.load(pipeline_path)
+
     logging.info("Init complete")
 
 def run(raw_data):
