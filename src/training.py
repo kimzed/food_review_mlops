@@ -11,6 +11,8 @@ import xgboost as xgb
 from azure.ai.ml.entities import Model
 from azure.ai.ml.constants import AssetTypes
 
+from centralized_preprocessing import CentralizedPreprocessing
+import joblib
 
 def xgb_classifier(vect: CountVectorizer, df: pd.DataFrame) -> np.ndarray:
     x_text_features = vect.fit_transform(df.combined_text_Summary)
@@ -56,11 +58,10 @@ def main():
 
     # Apply the sentiment analysis function to the DataFrame
     df = apply_sentiment_analysis(df)
-    vect = CountVectorizer(
-        ngram_range=(1, 2), max_features=10000, min_df=2, stop_words="english"
-    )
 
-    x_vectorized = vect.fit_transform(df.combined_text_Summary)
+    pipeline = CentralizedPreprocessing()
+
+    x_vectorized = pipeline.fit_transform(df.combined_text_Summary)
 
     mlflow.log_metric("num_samples", x_vectorized.shape[0])
     mlflow.log_metric("num_features", x_vectorized.shape[1] - 1)
@@ -95,6 +96,7 @@ def main():
         xgb_model=model,
         path=os.path.join(args.registered_model_name, "trained_model"),
     )
+    joblib.dump(pipeline, os.path.join(args.registered_model_name, 'text_pipeline.pkl'))
 
     mlflow.end_run()
 
