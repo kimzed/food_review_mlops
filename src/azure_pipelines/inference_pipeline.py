@@ -1,34 +1,45 @@
 import uuid
 
-from azure_pipelines.azure_ml_setup import ML_CLIENT
-from settings import MODEL_NAME
-from azure.ai.ml.entities import ManagedOnlineDeployment
+from src.azure_pipelines.azure_ml_setup import ML_CLIENT
+from settings import AZURE_ENV_NAME, MODEL_NAME
+from azure.ai.ml.entities import ManagedOnlineDeployment, ManagedOnlineEndpoint, CodeConfiguration,Environment
 
 def main():
     # Create a unique name for the endpoint
-    online_endpoint_name = "sentiment-analysis-endpoint-" + str(uuid.uuid4())[:8]
+    online_endpoint_name = "sentiment-analysis-endpoint" # + str(uuid.uuid4())[:8]
 
     latest_model_version = max(
         [int(m.version) for m in ML_CLIENT.models.list(name=MODEL_NAME)]
     )
+    env = Environment(
+    conda_file="./environment.yml",
+    image="mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest",
+    )
 
-    print(latest_model_version)
 
-    # Choose the latest version of our registered model for deployment
-    model = ML_CLIENT.models.get(name=MODEL_NAME, version=latest_model_version)
-    
+    # create an online endpoint
+    endpoint = ManagedOnlineEndpoint(
+        name=online_endpoint_name,
+        description="endpoint for the sentiment analysis model",
+        auth_mode="key",
+    )
+
+    ML_CLIENT.online_endpoints.begin_create_or_update(endpoint)
 
     # define an online deployment
-    test_deployment = ManagedOnlineDeployment(
-        name="blue",
+    deployment = ManagedOnlineDeployment(
+        name="sentiment-analyzer-deployment",
         endpoint_name=online_endpoint_name,
-        model=model,
-        scoring_script_path="",
-        instance_type="Standard_D2as_v4",
+        environment=f"{AZURE_ENV_NAME}@latest",
+        code_configuration=CodeConfiguration(
+        code="src/azure_pipelines/", scoring_script="score.py"
+    ),
+        instance_type="Standard_DS3_v2",
         instance_count=1,
     )
-    test_deployment = ML_CLIENT.online_deployments.begin_create_or_update(
-    test_deployment).result()
+
+    ML_CLIENT.online_deployments.begin_create_or_update(
+    deployment=deployment)
 
 if __name__ == "__main__":
     main()

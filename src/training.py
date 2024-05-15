@@ -85,20 +85,15 @@ def main():
         for metric, value in metrics_dict.items():
             mlflow.log_metric(class_or_avg + "_" + metric, value)
 
-    print("Registering the model via MLFlow")
+    print("Registering the models via MLFlow")
     mlflow.xgboost.log_model(
         xgb_model=model,
         registered_model_name=args.registered_model_name,
         artifact_path=args.registered_model_name,
     )
 
-    mlflow.xgboost.save_model(
-        xgb_model=model,
-        path=os.path.join(args.registered_model_name, "trained_model"),
-    )
-    joblib.dump(pipeline, os.path.join(args.registered_model_name, 'text_pipeline.pkl'))
-
-    mlflow.end_run()
+    mlflow.pyfunc.log_model(python_model=pipeline, registered_model_name="preprocessing_pipeline",
+                            artifact_path="preprocessing_pipeline")
 
 
 if __name__ == "__main__":

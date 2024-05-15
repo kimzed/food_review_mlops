@@ -1,17 +1,20 @@
 import argparse
+import pickle
 from typing import Callable
 from pathlib import WindowsPath
+import mlflow
 import pandas as pd
+from sklearn.linear_model import LogisticRegression
 from preprocessing_functions import clean_text, add_polarity_label
 
 from training_functions import apply_sentiment_analysis
 
 from sklearn.feature_extraction.text import CountVectorizer
 
-class CentralizedPreprocessing:
+class CentralizedPreprocessing(mlflow.pyfunc.PythonModel):
     def __init__(self):
         self.vectorizer = CountVectorizer(
-        ngram_range=(1, 2), max_features=10000, min_df=2, stop_words="english"
+     max_features=10000, min_df=2, stop_words="english"
     )
         self.fitted = False
 
@@ -28,3 +31,6 @@ class CentralizedPreprocessing:
             raise RuntimeError("The pipeline needs to be fitted before transforming data.")
         preprocessed_text = self.preprocess(text)
         return self.vectorizer.transform([preprocessed_text])
+
+
+
